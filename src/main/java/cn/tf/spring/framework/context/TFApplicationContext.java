@@ -1,8 +1,8 @@
 package cn.tf.spring.framework.context;
 
-import cn.tf.spring.framework.beans.TFBeanFactory;
+import cn.tf.spring.framework.core.TFBeanFactory;
 import cn.tf.spring.framework.beans.config.TFBeanDefinition;
-import cn.tf.spring.framework.beans.config.TFBeanWrapper;
+import cn.tf.spring.framework.beans.TFBeanWrapper;
 import cn.tf.spring.framework.beans.support.TFDefaultListableBeanFactory;
 import cn.tf.spring.framework.context.support.TFBeanDefinitionReader;
 
@@ -13,20 +13,31 @@ public class TFApplicationContext extends TFDefaultListableBeanFactory implement
 
     private String [] configLocations;
 
-    TFBeanDefinitionReader reader;
+    private TFBeanDefinitionReader reader;
 
     public TFApplicationContext(String ... configLocations){
         this.configLocations = configLocations;
-        refresh();
+        try {
+            refresh();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
 
     @Override
-    protected void refresh() {
-        reader = new TFBeanDefinitionReader().loadBeanDefinitions();
+    public void refresh()  {
+        //1、定位配置文件
+        reader = new TFBeanDefinitionReader(this.configLocations);
 
+        //2、加载
+        List<TFBeanDefinition> beanDefinitions = reader.loadBeanDefinitions();
 
+        //3、注册
+        doRegisterBeanDefinition(beanDefinitions);
+
+        //4、初始化
         doAutowrited();
 
     }
@@ -41,6 +52,10 @@ public class TFApplicationContext extends TFDefaultListableBeanFactory implement
     }
     private void doRegisterBeanDefinition(List<TFBeanDefinition> beanDefinitions){
         for (TFBeanDefinition beanDefinition:beanDefinitions){
+            if(super.beanDefinitionMap.containsKey(beanDefinition.getFactoryBeanName())){
+                System.out.println("the " + beanDefinition.getFactoryBeanName() + " is existes!");
+                continue;
+            }
             super.beanDefinitionMap.put(beanDefinition.getFactoryBeanName(),beanDefinition);
         }
     }
@@ -55,6 +70,10 @@ public class TFApplicationContext extends TFDefaultListableBeanFactory implement
         
 
         return null;
+    }
+
+    private void populateBean(String beanName, TFBeanDefinition tfBeanDefinition, TFBeanWrapper tfBeanWrapper) {
+
     }
 
     private void instantiateBean(String beanName, TFBeanDefinition tfBeanDefinition) {

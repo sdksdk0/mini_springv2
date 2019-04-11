@@ -10,15 +10,11 @@ public class TFDefaultListableBeanFactory extends TFAbstractApplicationContext{
 
 
     //beanDefinitionMap用来保存配置信息
-    protected Map<String, TFBeanDefinition> beanDefinitionMap = new ConcurrentHashMap<String,TFBeanDefinition>();
+    protected final  Map<String, TFBeanDefinition> beanDefinitionMap = new ConcurrentHashMap<String,TFBeanDefinition>();
 
-    protected void refresh(){
-
-    }
-
-    @Override
-    protected void refreshBeanFactory() {
+    public void refresh() throws Exception{
 
     }
+
 
 }

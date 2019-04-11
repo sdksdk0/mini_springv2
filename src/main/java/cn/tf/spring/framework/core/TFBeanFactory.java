@@ -1,4 +1,4 @@
-package cn.tf.spring.framework.beans;
+package cn.tf.spring.framework.core;
 
 public interface TFBeanFactory {
     /**
