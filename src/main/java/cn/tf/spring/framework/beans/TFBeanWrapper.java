@@ -13,9 +13,6 @@ public class TFBeanWrapper {
         this.wrapperInstance = wrapperInstance;
     }
 
-    public  TFBeanWrapper() {
-
-    }
 
     public Object getWrappedInstance(){
         return this.wrapperInstance;

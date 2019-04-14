@@ -1,4 +1,4 @@
-package cn.tf.spring.framework.context.support;
+package cn.tf.spring.framework.beans.support;
 
 import cn.tf.spring.framework.beans.config.TFBeanDefinition;
 
@@ -37,7 +37,9 @@ public class TFBeanDefinitionReader {
 
     private void doScanner(String packageName) {
 
-        URL url = this.getClass().getClassLoader().getResource("/" + packageName.replaceAll("\\.","/"));
+
+        //URL url = this.getClass().getClassLoader().getResource("/" + packageName.replaceAll("\\.","/"));
+        URL url = this.getClass().getResource("/" + packageName.replaceAll("\\.","/"));
 
         File classDir = new File(url.getFile());
 
@@ -45,6 +47,7 @@ public class TFBeanDefinitionReader {
             if(file.isDirectory()){
                 doScanner(packageName + "." +file.getName());
             }else {
+                if(!file.getName().endsWith(".class")){continue;}
                 registyBeanClasses.add(packageName + "." + file.getName().replace(".class",""));
             }
         }

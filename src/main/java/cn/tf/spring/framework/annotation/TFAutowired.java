@@ -6,6 +6,6 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface TFAutowried {
+public @interface TFAutowired {
     String value() default  "";
 }
