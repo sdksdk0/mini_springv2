@@ -37,7 +37,6 @@ public class TFBeanDefinitionReader {
 
     private void doScanner(String packageName) {
 
-
         //URL url = this.getClass().getClassLoader().getResource("/" + packageName.replaceAll("\\.","/"));
         URL url = this.getClass().getResource("/" + packageName.replaceAll("\\.","/"));
 
@@ -55,12 +54,24 @@ public class TFBeanDefinitionReader {
     }
 
 
+    //把配置文件中扫描到的所有的配置信息转换为TFBeanDefinition对象，以便于之后IOC操作方便
     public List<TFBeanDefinition> loadBeanDefinitions(){
         List<TFBeanDefinition> result = new ArrayList<TFBeanDefinition>();
-        for (String className : registyBeanClasses){
-            TFBeanDefinition beanDefinition = doCreateBeanDefinitions(className);
-            if(null ==beanDefinition){continue;}
-            result.add(beanDefinition);
+        try {
+            for (String className : registyBeanClasses) {
+                Class<?> beanClass = Class.forName(className);
+                //如果是一个接口，是不能实例化的
+                //用它实现类来实例化
+                if(beanClass.isInterface()) { continue; }
+
+                result.add(doCreateBeanDefinition(lowerFirstCase(beanClass.getSimpleName()),beanClass.getName()));
+                Class<?> [] interfaces = beanClass.getInterfaces();
+                for (Class<?> i : interfaces) {
+                    result.add(doCreateBeanDefinition(i.getName(),beanClass.getName()));
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
         return result;
     }
@@ -69,23 +80,13 @@ public class TFBeanDefinitionReader {
     }
 
 
-    private TFBeanDefinition doCreateBeanDefinitions(String className){
-        try {
-                Class<?> beanClass = Class.forName(className);
-                //
-                if(!beanClass.isInterface()){
-                    TFBeanDefinition beanDefinition = new TFBeanDefinition();
-                    beanDefinition.setBeanClassName(className);
-                    beanDefinition.setFactoryBeanName(lowerFirstCase(beanClass.getSimpleName()));
-                    return beanDefinition;
-                }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
+    //把每一个配信息解析成一个BeanDefinition
+    private TFBeanDefinition doCreateBeanDefinition(String factoryBeanName,String beanClassName){
+        TFBeanDefinition beanDefinition = new TFBeanDefinition();
+        beanDefinition.setBeanClassName(beanClassName);
+        beanDefinition.setFactoryBeanName(factoryBeanName);
+        return beanDefinition;
     }
-
-
 
 
     private String lowerFirstCase(String str){
@@ -93,7 +94,5 @@ public class TFBeanDefinitionReader {
         chars[0] += 32;
         return String.valueOf(chars);
     }
-
-
 }
 
