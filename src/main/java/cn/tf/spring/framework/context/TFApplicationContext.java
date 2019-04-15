@@ -57,7 +57,11 @@ public class TFApplicationContext extends TFDefaultListableBeanFactory implement
         for(Map.Entry<String,TFBeanDefinition> beanDefinitionEntry:super.beanDefinitionMap.entrySet()){
             String beanName = beanDefinitionEntry.getKey();
             if(!beanDefinitionEntry.getValue().isLazyInit()){
-                getBean(beanName);
+                try {
+                    getBean(beanName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -101,8 +105,8 @@ public class TFApplicationContext extends TFDefaultListableBeanFactory implement
 
     }
 
-    public Object getBean(Class<?> beanClass) {
-        return (beanClass.getName());
+    public Object getBean(Class<?> beanClass) throws Exception {
+        return getBean(beanClass.getName());
     }
 
 

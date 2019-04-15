@@ -3,10 +3,7 @@ package cn.tf.spring.framework.webmvc.servlet;
 import cn.tf.spring.framework.annotation.TFController;
 import cn.tf.spring.framework.annotation.TFRequestMapping;
 import cn.tf.spring.framework.context.TFApplicationContext;
-import cn.tf.spring.framework.webmvc.TFHandlerAdapter;
-import cn.tf.spring.framework.webmvc.TFHandlerMapping;
-import cn.tf.spring.framework.webmvc.TFModelAndView;
-import cn.tf.spring.framework.webmvc.TFViewResolver;
+import cn.tf.spring.framework.webmvc.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.ServletConfig;
@@ -52,7 +49,11 @@ public class TFDispatchServlet extends HttpServlet {
         try {
             this.doDispatch(req,resp);
         } catch (Exception e) {
-            resp.getWriter().write("500 Exception,Details:\r\n" + Arrays.toString(e.getStackTrace()).replaceAll("\\[|\\]", "").replaceAll(",\\s", "\r\n"));
+            try {
+                processDispatcherResult(req,resp,new TFModelAndView("500"));
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
             e.printStackTrace();
         }
     }
@@ -61,27 +62,40 @@ public class TFDispatchServlet extends HttpServlet {
         //通过从request中拿到url
         TFHandlerMapping handlerMapping = getHandler(req);
         if(null ==handlerMapping){
+            processDispatcherResult(req,resp,new TFModelAndView("404"));
             return ;
         }
         //准备调用前的参数
        TFHandlerAdapter handlerAdapter = getHandlerAdapter(handlerMapping);
 
-        TFModelAndView mv = handlerAdapter.handler(req,resp,handlerMapping);
-
+        TFModelAndView mv = handlerAdapter.handle(req,resp,handlerMapping);
+        //真正的输出
         processDispatcherResult(req,resp,mv);
 
-
-
-
     }
 
-    private void processDispatcherResult(HttpServletRequest req,HttpServletResponse resp,TFModelAndView mv){
+    private void processDispatcherResult(HttpServletRequest req,HttpServletResponse resp,TFModelAndView mv) throws Exception {
         //把modelview变成html或者json
-        if(null == mv){return ;}
+        //调用 viewResolver 的 resolveView 方法
+        if(null == mv){return;}
+
+        if(this.viewResolvers.isEmpty()){return;}
+
+        System.out.println(this.viewResolvers.get(0).getViewName());
+        for (TFViewResolver viewResolver : this.viewResolvers) {
+            TFView view = viewResolver.resolveViewName(mv.getViewName(),null);
+            view.render(mv.getModel(),req,resp);
+            return;
+        }
 
     }
 
-    private TFHandlerAdapter getHandlerAdapter(TFHandlerMapping handlerMapping) {
+    private TFHandlerAdapter getHandlerAdapter(TFHandlerMapping handler) {
+        if(this.handlerAdapters.isEmpty()){return null;}
+        TFHandlerAdapter ha = this.handlerAdapters.get(handler);
+        if(ha.supports(handler)){
+            return ha;
+        }
         return null;
     }
 
@@ -126,17 +140,12 @@ public class TFDispatchServlet extends HttpServlet {
 
     private void initViewResolvers(TFApplicationContext context) {
         String templateRoot = context.getConfig().getProperty("templateRoot");
-        String templateRootPath = this.getClass().getClassLoader().getResource(templateRoot).getFile();
+        String templateRootPath =
+                this.getClass().getClassLoader().getResource(templateRoot).getFile();
         File templateRootDir = new File(templateRootPath);
-
-        String[] templates = templateRootDir.list();
-        for(int i = 0; i < templates.length; i ++) {
-            this.viewResolvers.add(new TFViewResolver(templateRootPath));
+        for (File template : templateRootDir.listFiles()) {
+            this.viewResolvers.add(new TFViewResolver(templateRoot));
         }
-
-
-
-
     }
 
     private void initRequestToViewNameTranslator(TFApplicationContext context) {
