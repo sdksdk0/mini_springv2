@@ -2,6 +2,7 @@ package cn.tf.spring.framework.aop.support;
 
 import cn.tf.spring.framework.aop.aspect.TFAfterReturningAdviceInterceptor;
 import cn.tf.spring.framework.aop.aspect.TFAfterThrowingAdviceInterceptor;
+import cn.tf.spring.framework.aop.aspect.TFMethodAroundAdviceInterceptor;
 import cn.tf.spring.framework.aop.aspect.TFMethodBeforeAdviceInterceptor;
 import cn.tf.spring.framework.aop.config.TFAopConfig;
 import lombok.Data;
@@ -77,6 +78,12 @@ public class TFAdviseSupport {
                     //执行器链
                     List<Object> advices = new LinkedList<Object>();
                     //把每一个方法包装成 MethodIterceptor
+                    //环绕通知
+                    if(!(null == config.getAspectAround()|| "".equals(config.getAspectAround()))) {
+                        //创建一个Advivce
+                        advices.add(new TFMethodAroundAdviceInterceptor(aspectMethods.get(config.getAspectAround()),aspectClass.newInstance()));
+                    }
+
                     //before
                     if(!(null == config.getAspectBefore() || "".equals(config.getAspectBefore()))) {
                         //创建一个Advivce

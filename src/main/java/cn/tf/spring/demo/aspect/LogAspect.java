@@ -9,7 +9,7 @@ import java.util.Arrays;
 @Slf4j
 public class LogAspect {
 
-    //在调用一个方法之前，执行before方法
+   //在调用一个方法之前，执行before方法
     public void before(TFJoinPoint joinPoint){
         joinPoint.setUserAttribute("startTime_" + joinPoint.getMethod().getName(),System.currentTimeMillis());
         //这个方法中的逻辑，是由我们自己写的
@@ -34,4 +34,11 @@ public class LogAspect {
                 "\nArgs:" + Arrays.toString(joinPoint.getArguments()) +
                 "\nThrows:" + ex.getMessage());
     }
+    //环绕通知
+    public void aspectAround(TFJoinPoint joinPoint){
+        log.info("Invoker AspectAround Method!!!" +
+                "\nTargetObject:" +  joinPoint.getThis() +
+                "\nArgs:" + Arrays.toString(joinPoint.getArguments()));
+    }
+
 }

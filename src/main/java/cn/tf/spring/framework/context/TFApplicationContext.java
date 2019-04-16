@@ -183,6 +183,7 @@ public class TFApplicationContext extends TFDefaultListableBeanFactory implement
         config.setAspectAfter(this.reader.getConfig().getProperty("aspectAfter"));
         config.setAspectAfterThrow(this.reader.getConfig().getProperty("aspectAfterThrow"));
         config.setAspectAfterThrowingName(this.reader.getConfig().getProperty("aspectAfterThrowingName"));
+        config.setAspectAround(this.reader.getConfig().getProperty("aspectAround"));
         return new TFAdviseSupport(config);
     }
 
