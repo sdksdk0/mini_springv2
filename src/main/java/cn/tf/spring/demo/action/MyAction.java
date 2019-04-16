@@ -47,7 +47,6 @@ public class MyAction {
 		} catch (Exception e) {
 			e.printStackTrace();
 			Map<String,Object> model = new HashMap<>();
-			System.out.println("e"+e.getMessage());
 			model.put("detail",e.getMessage());
 			model.put("stackTrace", Arrays.toString(e.getStackTrace()).replaceAll("\\[|\\]",""));
 			return new TFModelAndView("500",model);

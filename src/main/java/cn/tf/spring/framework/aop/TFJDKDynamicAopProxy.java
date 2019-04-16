@@ -12,8 +12,8 @@ public class TFJDKDynamicAopProxy implements TFAopProxy, InvocationHandler {
 
     private TFAdviseSupport advised;
 
-    TFJDKDynamicAopProxy(TFAdviseSupport advised){
-        this.advised = advised;
+    public TFJDKDynamicAopProxy(TFAdviseSupport config){
+        this.advised = config;
     }
 
     @Override
@@ -23,15 +23,14 @@ public class TFJDKDynamicAopProxy implements TFAopProxy, InvocationHandler {
 
     @Override
     public Object getProxy(ClassLoader classLoader) {
-        return  Proxy.newProxyInstance(classLoader,this.advised.getTargetClass().getInterfaces(),this);
+        return Proxy.newProxyInstance(classLoader,this.advised.getTargetClass().getInterfaces(),this);
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        List<Object> interceptorsAndDynamicInterceptionAdvice = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, this.advised.getTargetClass());
-
-        TFMethodInvocation invocation = new TFMethodInvocation(proxy,null,method,args,
-                this.advised.getTargetClass(),interceptorsAndDynamicInterceptionAdvice);
-        return invocation.process();
+        List<Object> interceptorsAndDynamicMethodMatchers = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method,this.advised.getTargetClass());
+        System.out.println("interceptorsAndDynamicMethodMatchers:"+interceptorsAndDynamicMethodMatchers);
+        TFMethodInvocation invocation = new TFMethodInvocation(proxy,this.advised.getTarget(),method,args,this.advised.getTargetClass(),interceptorsAndDynamicMethodMatchers);
+        return invocation.proceed();
     }
 }

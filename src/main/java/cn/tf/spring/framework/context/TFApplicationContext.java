@@ -3,6 +3,11 @@ package cn.tf.spring.framework.context;
 import cn.tf.spring.framework.annotation.TFAutowired;
 import cn.tf.spring.framework.annotation.TFController;
 import cn.tf.spring.framework.annotation.TFService;
+import cn.tf.spring.framework.aop.TFAopProxy;
+import cn.tf.spring.framework.aop.TFCglibAopProxy;
+import cn.tf.spring.framework.aop.TFJDKDynamicAopProxy;
+import cn.tf.spring.framework.aop.config.TFAopConfig;
+import cn.tf.spring.framework.aop.support.TFAdviseSupport;
 import cn.tf.spring.framework.beans.config.TFBeanPostProcessor;
 import cn.tf.spring.framework.core.TFBeanFactory;
 import cn.tf.spring.framework.beans.config.TFBeanDefinition;
@@ -90,6 +95,7 @@ public class TFApplicationContext extends TFDefaultListableBeanFactory implement
 
             //1、初始化
             TFBeanWrapper tfBeanWrapper = new TFBeanWrapper(instance);
+
             this.beanWrapperMap.put(beanName,tfBeanWrapper);
             beanPostProcessor.postProcessAfterInitialization(instance,beanName);
 
@@ -150,14 +156,42 @@ public class TFApplicationContext extends TFDefaultListableBeanFactory implement
             }else{
                 Class<?> clazz = Class.forName(className);
                 instance = clazz.newInstance();
+
+                TFAdviseSupport config = instantionAopConfig(tfBeanDefinition);
+                config.setTargetClass(clazz);
+                config.setTarget(instance);
+
+                //符合PointCut的规则的话，创建代理对象
+                if(config.pointCutMatch()) {
+                    instance = createProxy(config).getProxy();
+                }
+                this.singletonBeanCacheMap.put(className,instance);
                 this.singletonBeanCacheMap.put(tfBeanDefinition.getFactoryBeanName(),instance);
             }
-            return instance;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return null;
+        return instance;
+    }
+
+    private TFAdviseSupport instantionAopConfig(TFBeanDefinition tfBeanDefinition) throws  Exception{
+        TFAopConfig config = new TFAopConfig();
+        config.setPointCut(this.reader.getConfig().getProperty("pointCut"));
+        config.setAspectClass(this.reader.getConfig().getProperty("aspectClass"));
+        config.setAspectBefore(this.reader.getConfig().getProperty("aspectBefore"));
+        config.setAspectAfter(this.reader.getConfig().getProperty("aspectAfter"));
+        config.setAspectAfterThrow(this.reader.getConfig().getProperty("aspectAfterThrow"));
+        config.setAspectAfterThrowingName(this.reader.getConfig().getProperty("aspectAfterThrowingName"));
+        return new TFAdviseSupport(config);
+    }
+
+    private TFAopProxy createProxy(TFAdviseSupport config) {
+        Class targetClass = config.getTargetClass();
+        if(targetClass.getInterfaces().length > 0){
+            return new TFJDKDynamicAopProxy(config);
+        }
+        return new TFCglibAopProxy(config) ;
     }
 
 
